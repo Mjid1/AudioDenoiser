@@ -3,6 +3,7 @@ import librosa
 from data_tools import audio_files_to_numpy
 from data_tools import blend_noise_randomly, numpy_audio_to_matrix_spectrogram
 import numpy as np
+from scipy.io import wavfile
 
 
 
@@ -43,11 +44,11 @@ min_duration, frame_length, hop_length_frame, hop_length_frame_noise, nb_samples
 
     # To save the long audio generated to disk to QC:
     noisy_voice_long = prod_noisy_voice.reshape(1, nb_samples * frame_length)
-    librosa.output.write_wav(path_save_sound + 'noisy_voice_long.wav', noisy_voice_long[0, :], sample_rate)
+    wavfile.write(path_save_sound + 'noisy_voice_long.wav', sample_rate, noisy_voice_long[0, :].astype(np.float32))
     voice_long = prod_voice.reshape(1, nb_samples * frame_length)
-    librosa.output.write_wav(path_save_sound + 'voice_long.wav', voice_long[0, :], sample_rate)
+    wavfile.write(path_save_sound + 'voice_long.wav', sample_rate, voice_long[0, :].astype(np.float32))
     noise_long = prod_noise.reshape(1, nb_samples * frame_length)
-    librosa.output.write_wav(path_save_sound + 'noise_long.wav', noise_long[0, :], sample_rate)
+    wavfile.write(path_save_sound + 'noise_long.wav', sample_rate, noise_long[0, :].astype(np.float32))
 
     # Squared spectrogram dimensions
     dim_square_spec = int(n_fft / 2) + 1
