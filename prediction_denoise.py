@@ -1,6 +1,5 @@
 import librosa
 import tensorflow as tf
-from tensorflow.keras.models import model_from_json
 from data_tools import scaled_in, inv_scaled_ou
 from data_tools import audio_files_to_numpy, numpy_audio_to_matrix_spectrogram, matrix_spectrogram_to_numpy_audio
 import numpy as np
@@ -11,16 +10,17 @@ def prediction(weights_path, name_model, audio_dir_prediction, dir_save_predicti
 audio_output_prediction, sample_rate, min_duration, frame_length, hop_length_frame, n_fft, hop_length_fft):
     """ This function takes as input pretrained weights, noisy voice sound to denoise, predict
     the denoise sound and save it to disk.
-    """
-
-    # load json and create model
-    json_file = open(weights_path+'/'+name_model+'.json', 'r')
-    loaded_model_json = json_file.read()
-    json_file.close()
-    loaded_model = model_from_json(loaded_model_json)
-    # load weights into new model
-    loaded_model.load_weights(weights_path+'/'+name_model+'.h5')
-    print("Loaded model from disk")
+    """    # Using model_best.h5 instead of loading from json
+    try:
+        # First try loading model directly
+        loaded_model = tf.keras.models.load_model(weights_path+'/model_best.h5')
+        print("Loaded model directly from h5 file")
+    except:
+        # If that fails, try recreating the model and loading just the weights
+        from model_unet import unet
+        loaded_model = unet()
+        loaded_model.load_weights(weights_path+'/model_best.h5')
+        print("Loaded weights into new model")
 
     # Extracting noise and voice from folder and convert to numpy
     audio = audio_files_to_numpy(audio_dir_prediction, audio_input_prediction, sample_rate,
