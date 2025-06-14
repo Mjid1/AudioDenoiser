@@ -84,6 +84,6 @@ def unet(pretrained_weights = None,input_size = (128,128,1)):
     #model.summary()
 
     if(pretrained_weights):
-    	model.load_weights(pretrained_weights)
+        model.load_weights(pretrained_weights)
 
     return model
