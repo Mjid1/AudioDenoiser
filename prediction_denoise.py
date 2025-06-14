@@ -13,13 +13,13 @@ audio_output_prediction, sample_rate, min_duration, frame_length, hop_length_fra
     """    # Using model_best.h5 instead of loading from json
     try:
         # First try loading model directly
-        loaded_model = tf.keras.models.load_model(weights_path+'/model_best.h5')
+        loaded_model = tf.keras.models.load_model(weights_path+'/model_unet.h5')
         print("Loaded model directly from h5 file")
     except:
         # If that fails, try recreating the model and loading just the weights
         from model_unet import unet
         loaded_model = unet()
-        loaded_model.load_weights(weights_path+'/model_best.h5')
+        loaded_model.load_weights(weights_path+'/model_unet.h5')
         print("Loaded weights into new model")
 
     # Extracting noise and voice from folder and convert to numpy
