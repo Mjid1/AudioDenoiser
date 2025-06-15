@@ -19,8 +19,8 @@ def conv_block(x, filters, dropout_rate=0.0):
         x = Dropout(dropout_rate)(x)
     return x
 
-# Modèle U-Net++ (Nested U-Net) avec option poids pré-entraînés
-def unet_plus_plus(input_size=(128, 128, 1), pretrained_weights=None):
+# Modèle U-Net++ renommé simplement en unet pour compatibilité
+def unet(input_size=(128, 128, 1), pretrained_weights=None):
     inputs = Input(input_size)
 
     # Niveau 0
@@ -58,4 +58,3 @@ def unet_plus_plus(input_size=(128, 128, 1), pretrained_weights=None):
         model.load_weights(pretrained_weights)
 
     return model
-
