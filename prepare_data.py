@@ -60,6 +60,17 @@ min_duration, frame_length, hop_length_frame, hop_length_frame_noise, nb_samples
             prod_noise, dim_square_spec, n_fft, hop_length_fft)
     m_amp_db_noisy_voice,  m_pha_noisy_voice = numpy_audio_to_matrix_spectrogram(
             prod_noisy_voice, dim_square_spec, n_fft, hop_length_fft)
+    
+    
+    
+    # pour resoudre prob spect 
+    print("\n=== Validation finale ===")
+    print(f"Voice spectrogram: min={np.min(m_amp_db_voice):.2f} dB, max={np.max(m_amp_db_voice):.2f} dB")
+    print(f"Noise spectrogram: min={np.min(m_amp_db_noise):.2f} dB, max={np.max(m_amp_db_noise):.2f} dB")
+    print(f"Noisy voice spectrogram: min={np.min(m_amp_db_noisy_voice):.2f} dB, max={np.max(m_amp_db_noisy_voice):.2f} dB")
+    if np.all(m_amp_db_voice == 0):
+                raise ValueError("ERREUR: Spectrogramme de la voix plat !")
+
 
     # Save to disk for Training / QC
     np.save(path_save_time_serie + 'voice_timeserie', prod_voice)
