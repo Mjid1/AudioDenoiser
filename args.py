@@ -15,13 +15,13 @@ parser.add_argument('--path_save_time_serie', default='./data/Train/time_serie/'
 
 parser.add_argument('--path_save_sound', default='./data/Train/sound/', type=str)
 #How much frame to create in data_creation mode
-parser.add_argument('--nb_samples', default=50, type=int)
+parser.add_argument('--nb_samples', default=5000, type=int)
 #Training from scratch or pre-trained weights
 parser.add_argument('--training_from_scratch',default=True, type=bool)
 #folder of saved weights
 parser.add_argument('--weights_folder', default='./weights', type=str)
 #Nb of epochs for training
-parser.add_argument('--epochs', default=10, type=int)
+parser.add_argument('--epochs', default=100, type=int)
 #Batch size for training
 parser.add_argument('--batch_size', default=20, type=int)
 #Name of saved model to read

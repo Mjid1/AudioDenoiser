@@ -74,3 +74,5 @@ min_duration, frame_length, hop_length_frame, hop_length_frame_noise, nb_samples
     np.save(path_save_spectrogram + 'voice_pha_db', m_pha_voice)
     np.save(path_save_spectrogram + 'noise_pha_db', m_pha_noise)
     np.save(path_save_spectrogram + 'noisy_voice_pha_db', m_pha_noisy_voice)
+    
+    print("create_data function execution completed.")

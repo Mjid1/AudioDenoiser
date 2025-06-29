@@ -19,7 +19,7 @@ loaded_model.load_weights(path_weights+'model_unet.h5')
 print("Loaded model from disk")
 
 audio_dir_prediction = '../demo_data/test'
-audio_input_prediction = ['noisy_voice_long_t2.wav']
+audio_input_prediction = ['noisy_voice_long_t1.wav']
 
 # Sample rate chosen to read audio
 sample_rate = 8000
