@@ -18,6 +18,7 @@ parser.add_argument('--path_save_sound', default='./data/Train/sound/', type=str
 parser.add_argument('--nb_samples', default=50, type=int)
 #Training from scratch or pre-trained weights
 parser.add_argument('--training_from_scratch',default=True, type=bool)
+
 #folder of saved weights
 parser.add_argument('--weights_folder', default='./weights', type=str)
 #Nb of epochs for training

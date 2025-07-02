@@ -37,7 +37,6 @@ def make_plot_time_serie(audio,sample_rate):
     librosa.display.waveplot(audio, sr=sample_rate)
     return
 
-
 def make_3plots_spec_voice_noise(stftvoicenoise_mag_db,stftnoise_mag_db,stftvoice_mag_db,sample_rate, hop_length_fft):
     """This function plots the spectrograms of noisy voice, noise and voice as a single plot """
     plt.figure(figsize=(8, 12))
@@ -57,7 +56,6 @@ def make_3plots_spec_voice_noise(stftvoicenoise_mag_db,stftnoise_mag_db,stftvoic
 
     return
 
-
 def make_3plots_phase_voice_noise(stftvoicenoise_phase,stftnoise_phase,stftvoice_phase,sample_rate, hop_length_fft):
     """This function plots the phase in radians of noisy voice, noise and voice as a single plot """
     plt.figure(figsize=(8, 12))
@@ -76,7 +74,6 @@ def make_3plots_phase_voice_noise(stftvoicenoise_phase,stftnoise_phase,stftvoice
     plt.tight_layout()
 
     return
-
 
 def make_3plots_timeseries_voice_noise(clipvoicenoise,clipnoise,clipvoice, sample_rate) :
     """This function plots the time series of audio of noisy voice, noise and voice as a single plot """
@@ -105,3 +102,5 @@ def make_3plots_timeseries_voice_noise(clipvoicenoise,clipnoise,clipvoice, sampl
     plt.ylim(-0.05, 0.05)
 
     return
+
+
