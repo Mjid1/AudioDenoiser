@@ -61,7 +61,8 @@ def blend_noise_randomly(voice, noise, nb_samples, frame_length):
     for i in range(nb_samples):
         id_voice = np.random.randint(0, voice.shape[0])
         id_noise = np.random.randint(0, noise.shape[0])
-        level_noise = np.random.uniform(0.2, 0.8)
+        #level_noise = np.random.uniform(0.2, 0.8)
+        level_noise = np.random.uniform(0.05, 0.4)
         
         voice_sample = voice[id_voice, :]
         noise_sample = noise[id_noise, :] * level_noise
