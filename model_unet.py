@@ -1,89 +1,89 @@
-import numpy as np
-import tensorflow as tf
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import (
-    Input, Conv2D, LeakyReLU, MaxPooling2D, Dropout,
-    concatenate, UpSampling2D, BatchNormalization, Activation
-)
-from tensorflow.keras.optimizers import Adam
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
 
-print("TensorFlow version:", tf.__version__)
+print("PyTorch version:", torch.__version__)
 
-def conv_block(x, filters, dropout_rate=0.0):
-    x = Conv2D(filters, 3, padding='same', kernel_initializer='he_normal')(x)
-    x = BatchNormalization()(x)
-    x = LeakyReLU()(x)
-    x = Conv2D(filters, 3, padding='same', kernel_initializer='he_normal')(x)
-    x = BatchNormalization()(x)
-    x = LeakyReLU()(x)
-    if dropout_rate > 0.0:
-        x = Dropout(dropout_rate)(x)
-    return x
+class ConvBlock(nn.Module):
+    def __init__(self, in_channels, out_channels, dropout_rate=0.0):
+        super(ConvBlock, self).__init__()
+        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1)
+        self.bn1 = nn.BatchNorm2d(out_channels)
+        self.lrelu1 = nn.LeakyReLU(inplace=True)
 
-def unet(input_size=(128, 128, 1), pretrained_weights=None, compile_model=True):
-    inputs = Input(input_size)
+        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1)
+        self.bn2 = nn.BatchNorm2d(out_channels)
+        self.lrelu2 = nn.LeakyReLU(inplace=True)
 
-    # Encodeur (filtres augmentés)
-    x00 = conv_block(inputs, 32)
-    x10 = conv_block(MaxPooling2D()(x00), 64)
-    x20 = conv_block(MaxPooling2D()(x10), 128)
-    x30 = conv_block(MaxPooling2D()(x20), 256)
-    x40 = conv_block(MaxPooling2D()(x30), 512, dropout_rate=0.5)
+        self.dropout = nn.Dropout2d(p=dropout_rate) if dropout_rate > 0.0 else nn.Identity()
 
-    # Décodeur avec concaténations
-    x01 = conv_block(concatenate([x00, UpSampling2D()(x10)], axis=3), 32)
-    x11 = conv_block(concatenate([x10, UpSampling2D()(x20)], axis=3), 64)
-    x21 = conv_block(concatenate([x20, UpSampling2D()(x30)], axis=3), 128)
-    x31 = conv_block(concatenate([x30, UpSampling2D()(x40)], axis=3), 256)
+    def forward(self, x):
+        x = self.lrelu1(self.bn1(self.conv1(x)))
+        x = self.lrelu2(self.bn2(self.conv2(x)))
+        return self.dropout(x)
 
-    x02 = conv_block(concatenate([x00, x01, UpSampling2D()(x11)], axis=3), 32)
-    x12 = conv_block(concatenate([x10, x11, UpSampling2D()(x21)], axis=3), 64)
-    x22 = conv_block(concatenate([x20, x21, UpSampling2D()(x31)], axis=3), 128)
+class UNetPP(nn.Module):
+    def __init__(self, input_channels=1):
+        super(UNetPP, self).__init__()
 
-    x03 = conv_block(concatenate([x00, x01, x02, UpSampling2D()(x12)], axis=3), 32)
-    x13 = conv_block(concatenate([x10, x11, x12, UpSampling2D()(x22)], axis=3), 64)
+        # Encoder
+        self.x00 = ConvBlock(input_channels, 32)
+        self.x10 = ConvBlock(32, 64)
+        self.x20 = ConvBlock(64, 128)
+        self.x30 = ConvBlock(128, 256)
+        self.x40 = ConvBlock(256, 512, dropout_rate=0.5)
 
-    x04 = conv_block(concatenate([x00, x01, x02, x03, UpSampling2D()(x13)], axis=3), 32)
+        # Decoder
+        self.x01 = ConvBlock(32 + 64, 32)
+        self.x11 = ConvBlock(64 + 128, 64)
+        self.x21 = ConvBlock(128 + 256, 128)
+        self.x31 = ConvBlock(256 + 512, 512)
 
-    # Sorties intermédiaires (bruit estimé)
-    sd1 = Conv2D(1, (1, 1))(x01)
-    sd1 = BatchNormalization()(sd1)
-    sd1 = Activation('tanh', name='sd1')(sd1)
+        self.x02 = ConvBlock(32 + 32 + 64, 32)
+        self.x12 = ConvBlock(64 + 64 + 128, 64)
+        self.x22 = ConvBlock(128 + 128 + 512, 128)
 
-    sd2 = Conv2D(1, (1, 1))(x02)
-    sd2 = BatchNormalization()(sd2)
-    sd2 = Activation('tanh', name='sd2')(sd2)
+        self.x03 = ConvBlock(32 + 32 + 32 + 64, 32)
+        self.x13 = ConvBlock(64 + 64 + 64 + 128, 64)
 
-    sd3 = Conv2D(1, (1, 1))(x03)
-    sd3 = BatchNormalization()(sd3)
-    sd3 = Activation('tanh', name='sd3')(sd3)
+        self.x04 = ConvBlock(32 + 32 + 32 + 32 + 64, 32)
 
-    sd4 = Conv2D(1, (1, 1))(x04)
-    sd4 = BatchNormalization()(sd4)
-    sd4 = Activation('tanh', name='sd4')(sd4)
+        # Outputs
+        self.out1 = nn.Sequential(nn.Conv2d(32, 1, kernel_size=1), nn.BatchNorm2d(1), nn.Tanh())
+        self.out2 = nn.Sequential(nn.Conv2d(32, 1, kernel_size=1), nn.BatchNorm2d(1), nn.Tanh())
+        self.out3 = nn.Sequential(nn.Conv2d(32, 1, kernel_size=1), nn.BatchNorm2d(1), nn.Tanh())
+        self.out4 = nn.Sequential(nn.Conv2d(32, 1, kernel_size=1), nn.BatchNorm2d(1), nn.Tanh())
 
+    def forward(self, x):
+        x00 = self.x00(x)
+        x10 = self.x10(F.max_pool2d(x00, 2))
+        x20 = self.x20(F.max_pool2d(x10, 2))
+        x30 = self.x30(F.max_pool2d(x20, 2))
+        x40 = self.x40(F.max_pool2d(x30, 2))
 
-    # Définition du modèle
-    model = Model(inputs=inputs, outputs=[sd1, sd2, sd3, sd4])
+        x01 = self.x01(torch.cat([x00, F.interpolate(x10, scale_factor=2, mode='nearest')], dim=1))
+        x11 = self.x11(torch.cat([x10, F.interpolate(x20, scale_factor=2, mode='nearest')], dim=1))
+        x21 = self.x21(torch.cat([x20, F.interpolate(x30, scale_factor=2, mode='nearest')], dim=1))
+        x31 = self.x31(torch.cat([x30, F.interpolate(x40, scale_factor=2, mode='nearest')], dim=1))
 
-    if compile_model:
-        model.compile(
-            optimizer=Adam(learning_rate=0.0003),
-            loss={
-                'sd1': tf.keras.losses.MeanSquaredError(),
-                'sd2': tf.keras.losses.MeanSquaredError(),
-                'sd3': tf.keras.losses.MeanSquaredError(),
-                'sd4': tf.keras.losses.MeanSquaredError()
-            },
-            loss_weights={
-                'sd1': 1.0,
-                'sd2': 1.0,
-                'sd3': 1.0,
-                'sd4': 1.0
-            }
-        )
+        x02 = self.x02(torch.cat([x00, x01, F.interpolate(x11, scale_factor=2, mode='nearest')], dim=1))
+        x12 = self.x12(torch.cat([x10, x11, F.interpolate(x21, scale_factor=2, mode='nearest')], dim=1))
+        x22 = self.x22(torch.cat([x20, x21, F.interpolate(x31, scale_factor=2, mode='nearest')], dim=1))
 
+        x03 = self.x03(torch.cat([x00, x01, x02, F.interpolate(x12, scale_factor=2, mode='nearest')], dim=1))
+        x13 = self.x13(torch.cat([x10, x11, x12, F.interpolate(x22, scale_factor=2, mode='nearest')], dim=1))
+
+        x04 = self.x04(torch.cat([x00, x01, x02, x03, F.interpolate(x13, scale_factor=2, mode='nearest')], dim=1))
+
+        sd1 = self.out1(x01)
+        sd2 = self.out2(x02)
+        sd3 = self.out3(x03)
+        sd4 = self.out4(x04)
+
+        return sd1, sd2, sd3, sd4
+
+def unet(pretrained_weights=None, compile_model=True):
+    model = UNetPP(input_channels=1)
     if pretrained_weights:
-        model.load_weights(pretrained_weights)
-
+        model.load_state_dict(torch.load(pretrained_weights))
     return model

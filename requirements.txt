@@ -6,3 +6,7 @@ numpy==2.1.3
 scipy==1.15.3
 scikit-learn==1.7.0
 pesq
+torch==2.7.1
+torchvision==0.22.1
+torchaudio==2.7.1
+torchinfo==1.8.0
